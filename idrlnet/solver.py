@@ -475,7 +475,7 @@ class Solver(Notifier, Optimizable):
                 + "\n".join(Optimizable.OPTIMIZER_MAP.keys())
                 + '\n Example: opt_config=dict(optimizer="Adam", lr=1e-3)'
             )
-
+        
         lr_scheduler = self.schedule_config["scheduler"]
         if isinstance(lr_scheduler, str) and lr_scheduler in Optimizable.SCHEDULE_MAP:
             lr_scheduler = Optimizable.SCHEDULE_MAP[lr_scheduler](
