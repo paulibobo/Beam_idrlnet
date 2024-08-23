@@ -14,9 +14,12 @@ sc.__file__
 #Save training dataset in trainarray
 
 parser = argparse.ArgumentParser()
+parser.add_argument('-max_iter', type=int, default=5000)
 parser.add_argument('-plots', type=bool, default=True)
 opt = parser.parse_args()
+max_iters = opt.max_iter
 plot = opt.plots
+
 trainarray = []
 i=0
 for filename in os.listdir("Dataset2"):
@@ -108,7 +111,6 @@ class BoundaryC(sc.SampleDomain):
     def sampling(self, *args, **kwargs): 
         t = []
         V = []
-        g = []
         g0 = []
         k=-1
         area = []
@@ -160,7 +162,7 @@ s = sc.Solver(
     sample_domains=(Beam(),BoundaryC()),
     netnodes=[net],
     network_dir="network_dir",
-    max_iter=50000,schedule_config=dict(scheduler="ExponentialLR", gamma=0.999)
+    max_iter=max_iters,schedule_config=dict(scheduler="ExponentialLR", gamma=0.999)
 )
 
 #Training the network
