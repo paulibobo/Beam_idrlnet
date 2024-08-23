@@ -6,7 +6,7 @@ import argparse
 
 
 import matplotlib.pyplot as plt
-
+import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_squared_error
 sc.__file__
@@ -14,11 +14,14 @@ sc.__file__
 #Save training dataset in trainarray
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-max_iter', type=int, default=5000)
+parser.add_argument('-max_iter', type=int, default=50000)
 parser.add_argument('-plots', type=bool, default=True)
+parser.add_argument('-savepath', type=str, default="res/")
+
 opt = parser.parse_args()
 max_iters = opt.max_iter
 plot = opt.plots
+datafile_path = opt.savepath
 
 trainarray = []
 i=0
@@ -185,18 +188,22 @@ if(plot == True):
         
         x_plot = []
         y_plot = []
-        
+        xy_data = []
         
         for i in range(k*101,(k+1)*101):
         
             x_plot.append(testarray[i][0])
             y_plot.append(testarray[i][2])
+            xy_data.append([testarray[i][0],testarray[i][2]])
             
         plt.plot(x_plot, y_plot)
         plt.plot(xs, y_pred, '-o', color='r',linestyle='dotted', markersize=4)
         
         mse = mean_squared_error(y_plot, y_pred)
         print("MSE for dataset " + str(k) + ": " + str(mse))
+        
+        fname = "res/TestExample" + str(k) + ".dat"
+        np.savetxt(fname ,  xy_data, fmt=['%10.7f','%10.7f'])
 
 
 
