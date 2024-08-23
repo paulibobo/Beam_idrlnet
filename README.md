@@ -15,9 +15,13 @@ pip install -r requirements.txt
 To train the model(s) in the paper, run this command:
 
 ```train
-python beam_idrlnet.py -plots True/False
+python beam_idrlnet.py -max_iter 5000 -plots True/False -savepath <path to save files to/>
 ```
 >📋 The input parameters for the training script are:
-    * -plots: Whether to plot the inputs and outputs from the dataset or not
+    	* -max_iter: Max number if iterations for the model
+   	* -plots: Whether to plot the inputs and outputs from the dataset or not
+	* -savepath: The path where to save the weights, model and training history
+
+    
 
 
