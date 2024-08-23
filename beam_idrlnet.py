@@ -2,6 +2,7 @@ import os
 
 
 import idrlnet.shortcut as sc
+import argparse
 
 
 import matplotlib.pyplot as plt
@@ -12,6 +13,10 @@ sc.__file__
 
 #Save training dataset in trainarray
 
+parser = argparse.ArgumentParser()
+parser.add_argument('-plots', type=bool, default=True)
+opt = parser.parse_args()
+plot = opt.plots
 trainarray = []
 i=0
 for filename in os.listdir("Dataset2"):
@@ -155,7 +160,7 @@ s = sc.Solver(
     sample_domains=(Beam(),BoundaryC()),
     netnodes=[net],
     network_dir="network_dir",
-    max_iter=50000
+    max_iter=50000,schedule_config=dict(scheduler="ExponentialLR", gamma=0.999)
 )
 
 #Training the network
@@ -168,28 +173,28 @@ s.sample_domains = (InferBeam(),)
 points = s.infer_step({"test_domain": ["V", "t", "g", "g0"]})
 
 #Create graphs
-
-for k in range(0, 4):
-
-    xs = points["test_domain"]["t"][k*101:(k+1)*101].detach().cpu().numpy().ravel()
-    y_pred = points["test_domain"]["g"][k*101:(k+1)*101].detach().cpu().numpy().ravel()
-    plt.figure(k)
+if(plot == True):
+    for k in range(0, 4):
     
-    
-    x_plot = []
-    y_plot = []
-    
-    
-    for i in range(k*101,(k+1)*101):
-    
-        x_plot.append(testarray[i][0])
-        y_plot.append(testarray[i][2])
+        xs = points["test_domain"]["t"][k*101:(k+1)*101].detach().cpu().numpy().ravel()
+        y_pred = points["test_domain"]["g"][k*101:(k+1)*101].detach().cpu().numpy().ravel()
+        plt.figure(k)
         
-    plt.plot(x_plot, y_plot)
-    plt.plot(xs, y_pred, '-o', color='r',linestyle='dotted', markersize=4)
-    
-    mse = mean_squared_error(y_plot, y_pred)
-    print("MSE for dataset " + str(k) + ": " + str(mse))
+        
+        x_plot = []
+        y_plot = []
+        
+        
+        for i in range(k*101,(k+1)*101):
+        
+            x_plot.append(testarray[i][0])
+            y_plot.append(testarray[i][2])
+            
+        plt.plot(x_plot, y_plot)
+        plt.plot(xs, y_pred, '-o', color='r',linestyle='dotted', markersize=4)
+        
+        mse = mean_squared_error(y_plot, y_pred)
+        print("MSE for dataset " + str(k) + ": " + str(mse))
 
 
 
