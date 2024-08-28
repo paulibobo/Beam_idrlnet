@@ -299,7 +299,6 @@ class Solver(Notifier, Optimizable):
     def solve(self):
         """After the solver instance is initialized, the method could be called to solve the entire problem."""
         self.notify(self, message={Signal.SOLVE_START: "default"})
-        print("Hello")
         while self.global_step < self.max_iter:
             loss = self.train_pipe()
             if self.global_step % self.print_freq == 0:
@@ -313,7 +312,6 @@ class Solver(Notifier, Optimizable):
         """Sample once; calculate the loss once; backward propagation once
         :return: None
         """
-        print("Hiii")
         self.notify(self, message={Signal.TRAIN_PIPE_START: "defaults"})
         for opt in self.optimizers:
             opt.zero_grad()
@@ -335,7 +333,16 @@ class Solver(Notifier, Optimizable):
         self.notify(self, message={Signal.TRAIN_PIPE_END: "defaults"})
         return loss
     
-
+    def addlims(self,loss,y_pred,t):
+        l=0
+        losstens = loss['g'].clone()
+        for (i, k, j) in zip(loss['g'], y_pred['g'], t['t']):
+            #print(loss['g'])
+            losstens[l] = i#*pow(10, k-2.3) #- pow(10, k-2.3) - abs(pow(math.e,-10*j)*(k-2.3))
+            #print(loss['g'])
+            #print(loss['g'][k])
+            l+=1
+        loss['g']=losstens
             
 
     def compute_loss(
@@ -353,6 +360,7 @@ class Solver(Notifier, Optimizable):
             diff[domain_name] = (
                 pred_out_sample[domain_name] - domain_val.to_torch_tensor_()
             )
+            #self.addlims(diff[domain_name],pred_out_sample[domain_name],in_var[domain_name])
             diff[domain_name].update(lambda_out[domain_name])
             diff[domain_name].update(area=in_var[domain_name]["area"])
 
@@ -407,13 +415,12 @@ class Solver(Notifier, Optimizable):
         in_var, true_out, lambda_out = self.generate_in_out_dict(samples)
         pred_out_sample = self.forward_through_all_graph(in_var, domain_attr)
         l = 0
-        print(pred_out_sample.keys())
         for (i, j) in zip(pred_out_sample['test_domain']['g'], pred_out_sample['test_domain']['t']):
             if (j==0):
                 pred_out_sample['test_domain']['g'][l] = 2.3
             if (j==1):
                 pred_out_sample['test_domain']['g0'][l] = 2.3
-            l += 1
+            l += 1 
         return pred_out_sample
 
     def sample_variables_from_domains(self) -> DomainVariables:
