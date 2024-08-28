@@ -4,7 +4,7 @@ import os
 import idrlnet.shortcut as sc
 import argparse
 
-
+import math
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -43,7 +43,6 @@ for filename in os.listdir("Test"):
                 testarray.append([float(x) for x in line.split()])
         i+=1
 
-
 #Generate .csv file with train data
 
 def generate_data(): 
@@ -52,7 +51,9 @@ def generate_data():
     g = []
     g0 = []
     area = []
+    g1 = []
     k=-1
+    m=-1
     
     for i in trainarray:
         if(i[0] == 0):
@@ -61,9 +62,11 @@ def generate_data():
         V.append(i[1])
         g.append(i[2])
         g0.append(k)
+        g1.append(m)
+        m=k
         k=i[2]
         area.append(0.05)
-    data = {'t': t, 'V': V, 'g': g, 'g0': g0, 'area' : area}  
+    data = {'t': t, 'V': V, 'g': g, 'g0': g0,'g1': g1, 'area' : area}  
     df = pd.DataFrame(data) 
     df.to_csv("train_sample.csv", index=False)
 
@@ -77,7 +80,9 @@ def generatet_data_test():
     g = []
     g0 = []
     area = []
+    g1 = []
     k=-1
+    m=-1
     
     for i in testarray:
         if(i[0] == 0):
@@ -86,9 +91,11 @@ def generatet_data_test():
         V.append(i[1])
         g.append(i[2])
         g0.append(k)
+        g1.append(m)
+        m=k
         k=i[2]
         area.append(0.05)
-    data = {'t': t, 'V': V, 'g': g, 'g0': g0, 'area' : area}  
+    data = {'t': t, 'V': V, 'g': g, 'g0': g0,'g1': g1, 'area' : area}  
     df = pd.DataFrame(data) 
     df.to_csv("test_sample.csv", index=False)
 
@@ -115,23 +122,28 @@ class BoundaryC(sc.SampleDomain):
         t = []
         V = []
         g0 = []
+        g1 = []
         k=-1
+        m=-1
         area = []
         for i in trainarray:
             if(i[0] == 0):
                 t.append(i[0])
                 V.append(i[1])
                 g0.append(k)
-                k=i[2]
+                g1.append(m)
+                m=k
+                k= i[2]
                 area.append(0.05)
         constraints = {"g": 2.3}
-        data = {'t': t, 'V': V, 'g0': g0, 'area' : area}        
+        data = {'t': t, 'V': V, 'g0': g0,'g1': g1, 'area' : area}        
         df = pd.DataFrame(data) 
         points1 = df
         points = {
             col: points1[col].to_numpy().reshape(-1, 1) for col in points1.columns
         }
         return points, constraints
+
 
 #Testing sampler
 
@@ -152,7 +164,8 @@ net = sc.get_net_node(
     inputs=(
         "V",
         "t",
-        "g0"
+        "g0",
+        "g1"
     ),
     outputs=("g",),
     name="net1",
@@ -165,7 +178,7 @@ s = sc.Solver(
     sample_domains=(Beam(),BoundaryC()),
     netnodes=[net],
     network_dir="network_dir",
-    max_iter=max_iters,schedule_config=dict(scheduler="ExponentialLR", gamma=0.999)
+    max_iter=max_iters,schedule_config=dict(scheduler="ExponentialLR", gamma=math.pow(0.95, 0.001))
 )
 
 #Training the network
@@ -175,7 +188,7 @@ s.solve()
 #Inferring on the test data
 
 s.sample_domains = (InferBeam(),)
-points = s.infer_step({"test_domain": ["V", "t", "g", "g0"]})
+points = s.infer_step({"test_domain": ["V", "t", "g", "g0","g1"]})
 
 #Create graphs
 if(plot == True):
